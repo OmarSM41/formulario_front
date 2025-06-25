@@ -65,8 +65,21 @@ const form = reactive({
   mensaje: ''
 })
 
-function handleSubmit() {
-  // Aquí puedes manejar el envío del formulario
-  alert('Formulario enviado:\n' + JSON.stringify(form, null, 2))
+async function handleSubmit() {
+  try {
+    const response = await fetch('http://localhost:3000/api/contacto', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(form)
+    });
+
+    const result = await response.json();
+    alert(result.message || "Datos enviados al backend!");
+  } catch (error) {
+    alert("Error al enviar: " + error.message);
+  }
 }
+
 </script>
