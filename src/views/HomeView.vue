@@ -1,4 +1,5 @@
 <template>
+  
   <div class="min-h-screen bg-gray-50 flex flex-col">
     <!-- Header -->
     <header class="bg-white shadow">
@@ -71,3 +72,4 @@
 <script setup>
 // No logic needed for static landing page
 </script>
+
