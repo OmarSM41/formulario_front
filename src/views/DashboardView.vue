@@ -1,140 +1,148 @@
 <template>
-    <div class="min-h-screen bg-gray-100 p-8">
-        <div class="max-w-5xl mx-auto bg-white rounded-lg shadow p-6">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                <h1 class="text-2xl font-bold mb-4 md:mb-0">Dashboard de Contactos</h1>
-                <div class="flex gap-2">
-                    <input
-                        v-model="search"
-                        type="text"
-                        placeholder="Buscar por nombre, correo..."
-                        class="border rounded px-3 py-2 focus:outline-none focus:ring w-64"
-                    />
-                    <button
-                        @click="clearSearch"
-                        class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded"
-                    >
-                        Limpiar
-                    </button>
-                </div>
-            </div>
+  <div class="p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">📋 Panel de Contactos</h1>
 
-            <div v-if="filteredContacts.length === 0" class="text-center text-gray-500 py-10">
-                No hay contactos registrados.
-            </div>
+    <div v-if="loading" class="text-center text-gray-500">Cargando contactos...</div>
+    <div v-if="error" class="text-center text-red-500">{{ error }}</div>
 
-            <div v-else class="overflow-x-auto">
-                <table class="min-w-full bg-white border rounded">
-                    <thead>
-                        <tr class="bg-gray-100 text-left">
-                            <th class="py-2 px-4 border-b">Nombre</th>
-                            <th class="py-2 px-4 border-b">Correo</th>
-                            <th class="py-2 px-4 border-b">Teléfono</th>
-                            <th class="py-2 px-4 border-b">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr
-                            v-for="contact in filteredContacts"
-                            :key="contact.id"
-                            class="hover:bg-gray-50"
-                        >
-                            <td class="py-2 px-4 border-b">{{ contact.nombre }}</td>
-                            <td class="py-2 px-4 border-b">{{ contact.correo }}</td>
-                            <td class="py-2 px-4 border-b">{{ contact.telefono }}</td>
-                            <td class="py-2 px-4 border-b flex gap-2">
-                                <button
-                                    @click="showDetails(contact)"
-                                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                                >
-                                    Detalles
-                                </button>
-                                <button
-                                    @click="deleteContact(contact.id)"
-                                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-                                >
-                                    Eliminar
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Modal Detalles -->
-            <div
-                v-if="selectedContact"
-                class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+    <table v-if="contacts.length > 0" class="w-full table-auto shadow-md rounded-xl overflow-hidden">
+      <thead class="bg-blue-600 text-white">
+        <tr>
+          <th class="p-3">Nombre</th>
+          <th class="p-3">Correo</th>
+          <th class="p-3">Teléfono</th>
+          <th class="p-3">Mensaje</th>
+          <th class="p-3 text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="contact in contacts"
+          :key="contact.id"
+          class="odd:bg-white even:bg-gray-100 hover:bg-blue-50 transition-colors"
+        >
+          <td class="p-3">{{ contact.nombre }}</td>
+          <td class="p-3">{{ contact.correo }}</td>
+          <td class="p-3">{{ contact.telefono }}</td>
+          <td class="p-3">{{ contact.mensaje }}</td>
+          <td class="p-3 flex gap-2 justify-center">
+            <button
+              class="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-lg"
+              @click="editContact(contact)"
             >
-                <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-                    <h2 class="text-xl font-bold mb-4">Detalles del Contacto</h2>
-                    <div class="mb-2"><span class="font-semibold">Nombre:</span> {{ selectedContact.nombre }}</div>
-                    <div class="mb-2"><span class="font-semibold">Correo:</span> {{ selectedContact.correo }}</div>
-                    <div class="mb-2"><span class="font-semibold">Teléfono:</span> {{ selectedContact.telefono }}</div>
-                    <div class="mb-2"><span class="font-semibold">Mensaje:</span> {{ selectedContact.mensaje }}</div>
-                    <div class="mt-6 text-right">
-                        <button
-                            @click="selectedContact = null"
-                            class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
-                        >
-                            Cerrar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+              ✏️ Editar
+            </button>
+            <button
+              class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg"
+              @click="deleteContact(contact.id)"
+            >
+              🗑️ Eliminar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div v-if="!loading && contacts.length === 0" class="text-center text-gray-500 mt-6">
+      No hay contactos registrados.
     </div>
+
+    <div v-if="editing" class="mt-10 p-4 border border-blue-300 bg-blue-50 rounded-lg">
+      <h2 class="text-xl font-semibold text-blue-600 mb-4">✏️ Editar Contacto</h2>
+      <form @submit.prevent="updateContact">
+        <div class="grid grid-cols-2 gap-4">
+          <input v-model="form.nombre" class="p-2 border rounded" placeholder="Nombre" />
+          <input v-model="form.correo" class="p-2 border rounded" placeholder="Correo" />
+          <input v-model="form.telefono" class="p-2 border rounded" placeholder="Teléfono" />
+          <input v-model="form.mensaje" class="p-2 border rounded" placeholder="Mensaje" />
+        </div>
+        <div class="mt-4 flex gap-4">
+          <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+            💾 Guardar cambios
+          </button>
+          <button @click="cancelEdit" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
+            ❌ Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
 
-// Datos de ejemplo (reemplaza con tu fuente de datos real)
-const contacts = ref([
-    {
-        id: 1,
-        nombre: 'Juan Pérez',
-        correo: 'juan@example.com',
-        telefono: '123456789',
-        mensaje: 'Hola, me gustaría saber más sobre sus servicios.'
-    },
-    {
-        id: 2,
-        nombre: 'Ana Gómez',
-        correo: 'ana@example.com',
-        telefono: '987654321',
-        mensaje: 'Tengo una consulta sobre el formulario.'
+const contacts = ref([])
+const loading = ref(true)
+const error = ref(null)
+const editing = ref(false)
+const form = ref({ id: null, nombre: '', correo: '', telefono: '', mensaje: '' })
+const router = useRouter()
+
+const fetchContacts = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const user = JSON.parse(localStorage.getItem('user'))
+
+    if (!token || !user || user.role !== 'admin') {
+      router.push('/home')
+      return
     }
-])
 
-const search = ref('')
-const selectedContact = ref(null)
+    const res = await axios.get('http://localhost:3000/api/contactos', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
 
-const filteredContacts = computed(() => {
-    if (!search.value) return contacts.value
-    const term = search.value.toLowerCase()
-    return contacts.value.filter(
-        c =>
-            c.nombre.toLowerCase().includes(term) ||
-            c.correo.toLowerCase().includes(term) ||
-            c.telefono.toLowerCase().includes(term)
-    )
-})
-
-function showDetails(contact) {
-    selectedContact.value = contact
+    contacts.value = res.data
+  } catch (err) {
+    error.value = 'No se pudieron cargar los contactos.'
+    console.error(err)
+  } finally {
+    loading.value = false
+  }
 }
 
-function deleteContact(id) {
-    if (confirm('¿Estás seguro de eliminar este contacto?')) {
-        contacts.value = contacts.value.filter(c => c.id !== id)
-        if (selectedContact.value && selectedContact.value.id === id) {
-            selectedContact.value = null
-        }
-    }
+const deleteContact = async (id) => {
+  if (!confirm('¿Estás seguro de eliminar este contacto?')) return
+  try {
+    const token = localStorage.getItem('token')
+    await axios.delete(`http://localhost:3000/api/contactos/${id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    contacts.value = contacts.value.filter(c => c.id !== id)
+  } catch (err) {
+    console.error('Error al eliminar:', err)
+  }
 }
 
-function clearSearch() {
-    search.value = ''
+const editContact = (contact) => {
+  editing.value = true
+  form.value = { ...contact }
 }
+
+const cancelEdit = () => {
+  editing.value = false
+  form.value = { id: null, nombre: '', correo: '', telefono: '', mensaje: '' }
+}
+
+const updateContact = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    await axios.put(`http://localhost:3000/api/contactos/${form.value.id}`, form.value, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    contacts.value = contacts.value.map(c => c.id === form.value.id ? { ...form.value } : c)
+    cancelEdit()
+  } catch (err) {
+    console.error('Error al actualizar:', err)
+  }
+}
+
+onMounted(fetchContacts)
 </script>
+
+<style scoped>
+
+</style>
