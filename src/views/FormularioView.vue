@@ -162,42 +162,33 @@ const sanitizeInput = (input) => {
 
 // Cargar reCAPTCHA
 onMounted(() => {
-  const loadRecaptcha = () => {
-    if (window.grecaptcha) {
-      window.grecaptcha.ready(() => {
-        console.log('reCAPTCHA listo')
-      })
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit'
-    script.async = true
-    script.defer = true
-    document.head.appendChild(script)
-
-    window.onRecaptchaLoad = () => {
-      console.log('reCAPTCHA cargado')
-      window.grecaptcha.render('recaptcha-container', {
-        sitekey: '6LctkGwrAAAAAC6Q25pUJItPfEa5C4CoSA7vcSAJ',
-        theme: 'light',
-        callback: onRecaptchaSuccess,
-        'expired-callback': onRecaptchaExpired
-      })
-    }
-
-    window.onRecaptchaSuccess = (token) => {
-      form['g-recaptcha-response'] = token
-      errors.recaptcha = ''
-    }
-
-    window.onRecaptchaExpired = () => {
-      form['g-recaptcha-response'] = ''
-      errors.recaptcha = 'El reCAPTCHA ha expirado. Por favor verifica de nuevo.'
-    }
+  // 1. Define funciones globales ANTES de inyectar el script
+  window.onRecaptchaLoad = () => {
+    console.log('reCAPTCHA cargado')
+    window.grecaptcha.render('recaptcha-container', {
+      sitekey: '6LctkGwrAAAAAC6Q25pUJItPfEa5C4CoSA7vcSAJ',
+      theme: 'light',
+      callback: onRecaptchaSuccess,
+      'expired-callback': onRecaptchaExpired
+    })
   }
 
-  loadRecaptcha()
+  window.onRecaptchaSuccess = (token) => {
+    form['g-recaptcha-response'] = token
+    errors.recaptcha = ''
+  }
+
+  window.onRecaptchaExpired = () => {
+    form['g-recaptcha-response'] = ''
+    errors.recaptcha = 'El reCAPTCHA ha expirado. Por favor verifica de nuevo.'
+  }
+
+  // 2. Inyecta el script de Google
+  const script = document.createElement('script')
+  script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit'
+  script.async = true
+  script.defer = true
+  document.head.appendChild(script)
 })
 
 // Validación

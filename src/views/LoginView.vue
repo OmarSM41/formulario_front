@@ -44,10 +44,12 @@
 import { ref } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const username = ref('')
 const password = ref('')
 const router = useRouter()
+const auth = useAuthStore()
 
 const onSubmit = async () => {
   try {
@@ -62,11 +64,14 @@ const onSubmit = async () => {
     localStorage.setItem('token', token)
     localStorage.setItem('user', JSON.stringify(user))
 
+    // ACTUALIZAR PINIA
+    auth.login({ name: user.username })
+
     // Redirige según el rol
     if (user.role === 'admin') {
       router.push('/dashboard')
     } else {
-      router.push('/home')
+      router.push('/')
     }
 
   } catch (error) {
