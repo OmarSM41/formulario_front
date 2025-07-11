@@ -10,6 +10,7 @@
           <a v-if="!auth.isAuthenticated" href="/login" class="text-gray-700 hover:text-indigo-600"
             >Iniciar Sesión</a
           >
+          <a href="/dashboard">Dashboard</a>
           <a
             v-if="!auth.isAuthenticated"
             href="/register"
@@ -24,6 +25,7 @@
           >
             Cerrar Sesión
           </button>
+          
         </nav>
       </div>
     </header>

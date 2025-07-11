@@ -86,10 +86,7 @@ const fetchContacts = async () => {
     const token = localStorage.getItem('token')
     const user = JSON.parse(localStorage.getItem('user'))
 
-    if (!token || !user || user.role !== 'admin') {
-      router.push('/home')
-      return
-    }
+    
 
     const res = await axios.get('http://localhost:3000/api/contactos', {
       headers: { Authorization: `Bearer ${token}` }
