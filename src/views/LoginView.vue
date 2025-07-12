@@ -60,16 +60,16 @@ const onSubmit = async () => {
 
     const { token, user } = response.data
 
-    // Guardamos en localStorage
+    // 💾 Guardar token y user completo
     localStorage.setItem('token', token)
     localStorage.setItem('user', JSON.stringify(user))
 
-    // ACTUALIZAR PINIA
-    auth.login({ name: user.username })
+    // ✅ Actualizar Pinia correctamente
+    auth.login({ token, user })
 
-    // Redirige según el rol
+    // 🔀 Redirige según el rol
     if (user.role === 'admin') {
-      router.push('/dashboard')
+      router.push('/')
     } else {
       router.push('/')
     }

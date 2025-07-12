@@ -7,17 +7,28 @@
         <nav class="space-x-6">
           <a href="/" class="text-gray-700 hover:text-indigo-600">Inicio</a>
           <a href="/formulario" class="text-gray-700 hover:text-indigo-600">Formulario</a>
-          <a v-if="!auth.isAuthenticated" href="/login" class="text-gray-700 hover:text-indigo-600"
-            >Iniciar Sesión</a
-          >
-          <a href="/dashboard">Dashboard</a>
+
+          <a v-if="!auth.isAuthenticated" href="/login" class="text-gray-700 hover:text-indigo-600">
+            Iniciar Sesión
+          </a>
+          <a v-if="!auth.isAuthenticated" href="/register" class="text-gray-700 hover:text-indigo-600">
+            Registrarse
+          </a>
+
+          <!-- Mostrar nombre de usuario sin "Hola," -->
+          <span v-if="auth.isAuthenticated" class="text-gray-700">
+            {{ auth.user.username }}
+          </span>
+
+          <!-- Mostrar Dashboard solo si es admin -->
           <a
-            v-if="!auth.isAuthenticated"
-            href="/register"
+            v-if="auth.isAuthenticated && auth.user.role === 'admin'"
+            href="/dashboard"
             class="text-gray-700 hover:text-indigo-600"
-            >Registrarse</a
           >
-          <span v-if="auth.isAuthenticated" class="text-gray-700">Hola, {{ auth.user.name }}</span>
+            Dashboard
+          </a>
+
           <button
             v-if="auth.isAuthenticated"
             @click="auth.logout"
@@ -25,7 +36,6 @@
           >
             Cerrar Sesión
           </button>
-          
         </nav>
       </div>
     </header>
