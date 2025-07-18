@@ -4,10 +4,16 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: '', // JWT real
     user: { id: 0, username: '', role: '' },
-    isAuthenticated: false
+    isAuthenticated: false,
   }),
   actions: {
-    login({ token, user }) {
+    login({
+      token,
+      user,
+    }: {
+      token: string
+      user: { id: number; username: string; role: string }
+    }) {
       this.token = token
       this.user = user
       this.isAuthenticated = true
@@ -30,6 +36,6 @@ export const useAuthStore = defineStore('auth', {
         this.user = JSON.parse(user)
         this.isAuthenticated = true
       }
-    }
-  }
+    },
+  },
 })
